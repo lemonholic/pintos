@@ -97,6 +97,11 @@ struct thread
     struct list_elem elem;              /* List element. */
     int64_t blocked_ticks;  // used in timer_sleep
 
+    /* variable for advance scheduler */
+    int nice;
+    int recent_cpu;
+
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -147,5 +152,26 @@ void thread_insert_by_priority(struct list* _list, struct thread* t);
 void thread_donate_priority(struct thread* donor, struct thread* recipient);
 void thread_reset_priority(void);
 bool thread_is_donor (struct thread* cand, struct thread* recipient);
+
+
+/* functions for advanced scheduler */
+
+bool thread_compare_priority (const struct list_elem *a, const struct list_elem *b, void *aux UNUSED);
+void update_priority(struct thread *t);
+void update_recent_cpu(struct thread *t);
+void update_load_avg(void);
+
+#define ADD 0
+#define SUB 1
+#define MUL 2
+#define DIV 3
+
+#define CONVERTER (1 << 14) /* 1 expressed in 17.14 */
+
+int calc_float_float (int f1, int operator, int f2);
+int calc_int_float (int n, int operator, int f);
+int calc_float_int (int f, int operator, int n);
+
+void mlfqs_routine(int64_t ticks);
 
 #endif /* threads/thread.h */
