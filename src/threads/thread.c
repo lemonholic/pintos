@@ -266,7 +266,7 @@ thread_unblock (struct thread *t)
 
   // insert a thread to the ready_list in descending order of priority
   ASSERT (t->status == THREAD_BLOCKED);
-  thread_insert_by_priority(&ready_list, t);
+  list_push_back(&ready_list, &t->elem);
   t->status = THREAD_READY;
 
   //printf("[thread_unblock] unblocked: %d, current: %d\n", t->priority, thread_current()->priority);
@@ -348,7 +348,7 @@ thread_yield (void)
   //printf("[yield] hello\n");
   if (cur != idle_thread) {
     //printf("[yield] calling insert_by_priority\n");
-    thread_insert_by_priority(&ready_list, cur);
+    list_push_back(&ready_list, &cur->elem);
     //list_push_back(&ready_list, &cur->elem);
   }
   cur->status = THREAD_READY;
@@ -608,11 +608,13 @@ alloc_frame (struct thread *t, size_t size)
 static struct thread *
 next_thread_to_run (void) 
 {
-  list_sort(&ready_list, thread_compare_priority, 0);
-  if (list_empty (&ready_list))
+  if (list_empty (&ready_list)) {
     return idle_thread;
-  else
+  }
+  else {
+    list_sort(&ready_list, thread_compare_priority, 0);
     return list_entry (list_pop_front (&ready_list), struct thread, elem);
+  }
 }
 
 /* Completes a thread switch by activating the new thread's page
@@ -765,12 +767,13 @@ thread_donate_priority(struct thread* donor, struct thread* recipient)
 
   if (recipient->status == THREAD_READY) {
     list_remove(&recipient->elem);
-    thread_insert_by_priority(&ready_list, recipient);
+    list_push_back(&ready_list, &recipient->elem);
   }
 
   else if (recipient->status == THREAD_BLOCKED) {
     list_remove(&recipient->elem);
-    thread_insert_by_priority(&ready_list, recipient);
+    recipient->status = THREAD_READY;
+    list_push_back(&ready_list, &recipient->elem);
   }
 
   //intr_set_level(old_level);
