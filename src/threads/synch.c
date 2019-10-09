@@ -231,7 +231,7 @@ lock_acquire (struct lock *lock)
 
   enum intr_level old_level = intr_disable();
 
-  if(!thread_mlfqs){
+  if(!thread_mlfqs) {
     while (!sema_try_down(&lock->semaphore)) {
       list_push_back(&lock->semaphore.waiters, &cur->elem);
       if (cur->effective_priority > lock->holder->effective_priority)
@@ -239,10 +239,10 @@ lock_acquire (struct lock *lock)
       thread_block();
     }
   }
-  else{
+  else {
     sema_down(&lock->semaphore);
-   }
-    lock->holder = thread_current ();
+  }
+  lock->holder = thread_current ();
 
   intr_set_level(old_level);
 }
