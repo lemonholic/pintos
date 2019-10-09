@@ -112,20 +112,16 @@ thread_init (void)
 void
 thread_start (void) 
 {
-  //printf("[thread_start] has just been called\n");
   /* Create the idle thread. */
   struct semaphore idle_started;
   sema_init (&idle_started, 0);
   thread_create ("idle", PRI_MIN, idle, &idle_started);
- // printf("[thread_start] idle created\n");
 
   /* Start preemptive thread scheduling. */
   intr_enable ();
 
   /* Wait for the idle thread to initialize idle_thread. */
-  //printf("[thread_start] waiting for sema_down...\n");
   sema_down (&idle_started);
-  //printf("[thread_start] semaphore down by initial thread\n");
 }
 
 /* Called by the timer interrupt handler at each timer tick.
@@ -145,7 +141,6 @@ thread_tick (void)
   else
     kernel_ticks++;
 
-  //printf("<timer tick>\n");
   for (struct list_elem* e = list_begin(&sleep_list); e != list_end(&sleep_list); ) {
     struct thread* tr = list_entry(e, struct thread, elem);
     tr->blocked_ticks--;
@@ -224,7 +219,6 @@ thread_create (const char *name, int priority,
   sf->ebp = 0;
 
   /* Add to run queue. */
-  //printf("[thread_create] created a thread and unblocking it\n");
   thread_unblock (t);
 
   return tid;
@@ -241,7 +235,6 @@ thread_block (void)
 {
   ASSERT (!intr_context ());
   ASSERT (intr_get_level () == INTR_OFF);
-  //printf("[thread_block] blocking %p\n", thread_current());
 
   thread_current ()->status = THREAD_BLOCKED;
   schedule ();
@@ -269,7 +262,6 @@ thread_unblock (struct thread *t)
   list_push_back(&ready_list, &t->elem);
   t->status = THREAD_READY;
 
-  //printf("[thread_unblock] unblocked: %d, current: %d\n", t->priority, thread_current()->priority);
   if (t->effective_priority > thread_current()->effective_priority) {
     thread_yield();
   }
@@ -338,21 +330,16 @@ thread_yield (void)
 {
   struct thread *cur = thread_current ();
   enum intr_level old_level;
-  //printf("[thread_yield] cur: %p \n", cur);
-  //printf("[thread_yield] idle: %p \n", idle_thread);
   
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
 
-  //printf("[yield] hello\n");
   if (cur != idle_thread) {
-    //printf("[yield] calling insert_by_priority\n");
     list_push_back(&ready_list, &cur->elem);
     //list_push_back(&ready_list, &cur->elem);
   }
   cur->status = THREAD_READY;
-  //printf("[yield] calling schedule()\n");
   schedule ();
 
   intr_set_level (old_level);
@@ -369,15 +356,12 @@ thread_sleep (int64_t ticks)
   ASSERT (t != idle_thread);
   ASSERT (intr_get_level () == INTR_ON);
   enum thread_status old = intr_disable ();
-  //printf("\n<thread_sleep>\n");
   //list_remove(&t->elem);
 
-  //printf("thread sleep start\n");
   t->blocked_ticks = ticks;
   t->status = THREAD_BLOCKED;
   list_push_back(&sleep_list, &t->elem);
   schedule();
-  //printf("thread sleep done\n");
   intr_set_level(old);
   return;
 }
@@ -740,7 +724,6 @@ void
 thread_reset_priority()
 {
   ASSERT(intr_get_level() == INTR_OFF);
-  //printf("[thread_reset_priority] called \n");
 
   struct thread* cur = thread_current();
 

@@ -134,7 +134,6 @@ sema_up (struct semaphore *sema)
       thread_reset_priority();
       
       list_remove(&t->elem);
-      //printf("[sema_up] unblocking %p\n", t);
       sema->value++;
       thread_unblock (t);
     }
