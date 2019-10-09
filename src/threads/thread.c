@@ -257,7 +257,6 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
 
-  // insert a thread to the ready_list in descending order of priority
   ASSERT (t->status == THREAD_BLOCKED);
   list_push_back(&ready_list, &t->elem);
   t->status = THREAD_READY;
@@ -337,7 +336,6 @@ thread_yield (void)
 
   if (cur != idle_thread) {
     list_push_back(&ready_list, &cur->elem);
-    //list_push_back(&ready_list, &cur->elem);
   }
   cur->status = THREAD_READY;
   schedule ();
@@ -356,7 +354,6 @@ thread_sleep (int64_t ticks)
   ASSERT (t != idle_thread);
   ASSERT (intr_get_level () == INTR_ON);
   enum thread_status old = intr_disable ();
-  //list_remove(&t->elem);
 
   t->blocked_ticks = ticks;
   t->status = THREAD_BLOCKED;
@@ -694,18 +691,13 @@ thread_donate_priority(struct thread* donor, struct thread* recipient)
 {
   ASSERT(intr_get_level() == INTR_OFF);
   ASSERT(recipient->effective_priority < donor->effective_priority);
-  //enum intr_level old_level = intr_disable();
-
-  if(thread_mlfqs)
-	  return;
+  ASSERT(!thread_mlfqs);
 
   if (!thread_is_donor(donor, recipient)) 
     list_push_back(&recipient->donors, &donor->elem_donors);
   
   recipient->effective_priority = donor->effective_priority;
   
-  // TODO: merge the two below
-
   if (recipient->status == THREAD_READY) {
     list_remove(&recipient->elem);
     list_push_back(&ready_list, &recipient->elem);
@@ -716,8 +708,6 @@ thread_donate_priority(struct thread* donor, struct thread* recipient)
     recipient->status = THREAD_READY;
     list_push_back(&ready_list, &recipient->elem);
   }
-
-  //intr_set_level(old_level);
 }
 
 void 
