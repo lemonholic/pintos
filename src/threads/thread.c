@@ -704,49 +704,6 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
-// insert a thread in ascending/descending order
-// interrupt must be turned off
-void
-thread_insert_by_priority(struct list* _list, struct thread* t)
-{
-  //printf("[insert_by_priority] insertion start\n");
-  ASSERT(intr_get_level() == INTR_OFF);
-  //printf("assertion done\n");
-
-  struct list_elem* e;
-  for (e = list_begin(_list); e != list_end(_list); e = e->next) {
-    struct thread* tr = list_entry(e, struct thread, elem);
-    if (t->effective_priority > tr->effective_priority) {
-      break;
-    }
-  }
-  //printf("traversal done\n");
-
-  list_insert(e, &t->elem);
-}
-
-/*
-void
-thread_return_priority(struct thread* donor, struct thread* recipient)
-{
-  ASSERT(intr_get_level() == INTR_OFF);
-
-  list_remove(&donor->elem_donors);
-  if (recipient->effective_priority > donor->effective_priority) return;
-  if (list_empty(&recipient->donors)) {
-    recipient->effective_priority = recipient->priority;
-    return;
-  }
-
-  int max_priority = -1;
-  for (struct list_elem* e = list_begin(&recipient->donors); e != list_end(&recipient->donors); e = e->next) {
-    struct thread* waiter = list_entry(e, struct thread, elem_donors);
-    if (waiter->effective_priority > max_priority)
-      max_priority = waiter->effective_priority;
-  }
-  recipient->effective_priority = max_priority;
-}
-*/
 
 void
 thread_donate_priority(struct thread* donor, struct thread* recipient)
@@ -816,14 +773,6 @@ bool thread_compare_priority (const struct list_elem *a, const struct list_elem 
   return t1 > t2;
 }
 
-
-/*
-#define ADD 0
-#define SUB 1
-#define MUL 2
-#define DIV 3
-#define CONVERTER (1 << 14)  // 1 expressed in 17.14 
-*/
 
 int calc_float_float (int f1, int operator, int f2)
 {
