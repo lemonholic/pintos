@@ -697,13 +697,8 @@ thread_donate_priority(struct thread* donor, struct thread* recipient)
     list_push_back(&recipient->donors, &donor->elem_donors);
   
   recipient->effective_priority = donor->effective_priority;
-  
-  if (recipient->status == THREAD_READY) {
-    list_remove(&recipient->elem);
-    list_push_back(&ready_list, &recipient->elem);
-  }
 
-  else if (recipient->status == THREAD_BLOCKED) {
+  if (recipient->status == THREAD_BLOCKED) {
     list_remove(&recipient->elem);
     recipient->status = THREAD_READY;
     list_push_back(&ready_list, &recipient->elem);
