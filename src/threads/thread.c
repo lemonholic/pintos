@@ -155,7 +155,7 @@ thread_tick (void)
     }
   }
 
-  if(++thread_ticks >= TIME_SLICE)
+  if(thread_mlfqs && ++thread_ticks >= TIME_SLICE)
     intr_yield_on_return();
 }
 
@@ -220,6 +220,7 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
+  thread_yield();
 
   return tid;
 }
@@ -260,10 +261,6 @@ thread_unblock (struct thread *t)
   ASSERT (t->status == THREAD_BLOCKED);
   list_push_back(&ready_list, &t->elem);
   t->status = THREAD_READY;
-
-  if (t->effective_priority > thread_current()->effective_priority) {
-    thread_yield();
-  }
 
   intr_set_level (old_level);
 }

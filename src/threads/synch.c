@@ -114,7 +114,7 @@ sema_up (struct semaphore *sema)
 
   old_level = intr_disable ();
 
-  if(!thread_mlfqs){
+  if(!thread_mlfqs) {
     if (!list_empty (&sema->waiters)) {
       struct thread* t;
       int max_priority = -1;
@@ -135,18 +135,21 @@ sema_up (struct semaphore *sema)
       
       list_remove(&t->elem);
       sema->value++;
-      thread_unblock (t);
+      thread_unblock(t);
+      thread_yield();
     }
     else {
       sema->value++;
     }
   }
  
-    else{
+  else {
     list_sort(&sema->waiters, thread_compare_priority, 0);
     sema->value++;
-    if (!list_empty (&sema->waiters)) 
+    if (!list_empty (&sema->waiters)) {
       thread_unblock (list_entry (list_pop_front (&sema->waiters), struct thread, elem));
+      thread_yield();
+    }
   }
 
   intr_set_level (old_level);
