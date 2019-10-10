@@ -104,6 +104,7 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+
   load_avg = 0;
 }
 
@@ -421,11 +422,12 @@ thread_get_priority (void)
 void
 thread_set_nice (int nice UNUSED) 
 {
-  struct thread *cur = thread_current();
+//struct thread *cur = thread_current();
 
   enum intr_level old_level;
   old_level = intr_disable();
 
+  struct thread *cur = thread_current();
   cur->nice = nice;
 
   update_priority(cur);
@@ -446,7 +448,9 @@ thread_set_nice (int nice UNUSED)
 int
 thread_get_nice (void) 
 {
-  return thread_current()->nice;
+  enum intr_level old_level = intr_disable();
+  int result = thread_current()->nice;
+  return result;
 }
 
 /* Returns 100 times the system load average. */
