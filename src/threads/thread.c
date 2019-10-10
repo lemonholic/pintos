@@ -128,7 +128,7 @@ thread_start (void)
 /* Called by the timer interrupt handler at each timer tick.
    Thus, this function runs in an external interrupt context. */
 void
-thread_tick (void) 
+thread_tick (int64_t ticks) 
 {
   struct thread *t = thread_current ();
 
@@ -156,7 +156,7 @@ thread_tick (void)
     }
   }
 
-  if(thread_mlfqs && ++thread_ticks >= TIME_SLICE)
+  if((thread_mlfqs && ++thread_ticks >= TIME_SLICE) || (thread_mlfqs && (ticks % 4 == 0)))
     intr_yield_on_return();
 }
 
@@ -422,12 +422,11 @@ thread_get_priority (void)
 void
 thread_set_nice (int nice UNUSED) 
 {
-//struct thread *cur = thread_current();
 
+  struct thread *cur = thread_current();
   enum intr_level old_level;
   old_level = intr_disable();
 
-  struct thread *cur = thread_current();
   cur->nice = nice;
 
   update_priority(cur);
@@ -448,7 +447,6 @@ thread_set_nice (int nice UNUSED)
 int
 thread_get_nice (void) 
 {
-  enum intr_level old_level = intr_disable();
   int result = thread_current()->nice;
   return result;
 }
@@ -808,6 +806,7 @@ void update_priority(struct thread *t)
 
     t->effective_priority = a3;
   }
+
   intr_set_level(old_level);
 }
 
@@ -857,7 +856,8 @@ void mlfqs_routine(int64_t ticks)
 
   if(t != idle_thread)
     t->recent_cpu = calc_float_int(t->recent_cpu, ADD, 1);
-
+  
+  
   if(ticks % 100 == 0)
   {
     struct list_elem *e;
@@ -877,5 +877,5 @@ void mlfqs_routine(int64_t ticks)
   }
   
   intr_set_level(old_level);
-
+  
 }
